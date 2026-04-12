@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoCare - Input Pelanggan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Registrasi Pelanggan Baru</h2>
+        
+        <div id="pesanNotifikasi" class="hidden mb-4 p-3 rounded text-sm text-center font-semibold"></div>
+
+        <form id="formPelanggan" class="space-y-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-1">Nama Pelanggan</label>
+                <input type="text" id="nama_pelanggan" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Contoh: Budi Santoso">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-1">Nomor Telepon</label>
+                <input type="text" id="no_telepon" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Contoh: 081234567890">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 font-medium mb-1">Alamat</label>
+                <textarea id="alamat" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="Masukkan alamat lengkap..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
+                Simpan Data
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formPelanggan').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Mencegah halaman me-refresh
+
+            // Mengambil nilai dari kolom input
+            const nama = document.getElementById('nama_pelanggan').value;
+            const telepon = document.getElementById('no_telepon').value;
+            const alamat = document.getElementById('alamat').value;
+            const notifikasi = document.getElementById('pesanNotifikasi');
+
+            try {
+                // Mengirim data ke API Backend yang sudah kita buat
+                const response = await fetch('http://localhost:5000/api/pelanggan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nama_pelanggan: nama,
+                        no_telepon: telepon,
+                        alamat: alamat
+                    })
+                });
+
+                const result = await response.json();
+
+                // Menampilkan notifikasi berdasarkan hasil dari server
+                notifikasi.classList.remove('hidden');
+                if (response.ok && result.status === true) {
+                    notifikasi.classList.add('bg-green-100', 'text-green-700');
+                    notifikasi.classList.remove('bg-red-100', 'text-red-700');
+                    notifikasi.innerText = '✅ ' + result.message;
+                    
+                    // Mengosongkan form setelah berhasil
+                    document.getElementById('formPelanggan').reset();
+                } else {
+                    notifikasi.classList.add('bg-red-100', 'text-red-700');
+                    notifikasi.classList.remove('bg-green-100', 'text-green-700');
+                    notifikasi.innerText = '❌ ' + (result.message || 'Gagal menyimpan data.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                notifikasi.classList.remove('hidden');
+                notifikasi.classList.add('bg-red-100', 'text-red-700');
+                notifikasi.innerText = '❌ Gagal terhubung ke server. Pastikan Backend menyala!';
+            }
+        });
+    </script>
+</body>
+</html>

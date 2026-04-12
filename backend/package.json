@@ -1,0 +1,16 @@
+{
+  "name": "autocare-system-backend",
+  "version": "1.0.0",
+  "description": "Senarai pustaka (library) backend yang dipasang",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "mysql2": "^3.22.0"
+  }
+}
