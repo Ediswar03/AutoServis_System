@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SPKStatus {
+  OPEN
+  PROGRESS
+  SELESAI
+  DIBATALKAN
+}
+
+enum StatusPembayaran {
+  BELUM_BAYAR
+  LUNAS
+}
+
+enum Role {
+  ADMIN
+  MEKANIK
+  GUDANG
+  PIMPINAN
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  nama     String
+  role     Role   @default(MEKANIK)
+  createdAt DateTime @default(now())
+}
+
+model Pelanggan {
+  id         Int        @id @default(autoincrement())
+  nama       String
+  kontak     String
+  alamat     String?
+  createdAt  DateTime   @default(now())
+  kendaraan  Kendaraan[]
+}
+
+model Kendaraan {
+  plat_nomor String   @id @map("plat_nomor")
+  id_pelanggan Int
+  merk       String
+  tipe       String
+  pelanggan  Pelanggan @relation(fields: [id_pelanggan], references: [id])
+  spk        SPK[]
+}
+
+model Mekanik {
+  id        Int    @id @default(autoincrement())
+  nama      String
+  spk       SPK[]
+}
+
+model SukuCadang {
+  kode_part String               @id @map("kode_part")
+  nama      String
+  stok      Int                  @default(0)
+  harga     Decimal              @default(0)
+  details   DetailSukuCadang[]
+  permintaanParts PermintaanPart[]
+}
+
+model SPK {
+  no_spk     String               @id @map("no_spk")
+  plat_nomor String
+  id_mekanik Int
+  status     SPKStatus           @default(OPEN)
+  keluhan    String?
+  biaya_jasa Decimal              @default(0)
+  createdAt  DateTime             @default(now())
+
+  kendaraan  Kendaraan            @relation(fields: [plat_nomor], references: [plat_nomor])
+  mekanik    Mekanik              @relation(fields: [id_mekanik], references: [id])
+  details    DetailSukuCadang[]
+  invoice    Invoice?
+  permintaanParts PermintaanPart[]
+}
+
+model DetailSukuCadang {
+  id        Int       @id @default(autoincrement())
+  no_spk    String
+  kode_part String
+  qty       Int
+
+  spk       SPK       @relation(fields: [no_spk], references: [no_spk])
+  sukuCadang SukuCadang @relation(fields: [kode_part], references: [kode_part])
+}
+
+enum PermintaanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PermintaanPart {
+  id           Int              @id @default(autoincrement())
+  no_spk       String
+  kode_part    String
+  qty          Int
+  requested_at DateTime         @default(now())
+  status       PermintaanStatus @default(PENDING)
+
+  spk          SPK              @relation(fields: [no_spk], references: [no_spk])
+  sukuCadang   SukuCadang       @relation(fields: [kode_part], references: [kode_part])
+}
+
+model Invoice {
+  no_invoice        String           @id @map("no_invoice")
+  no_spk            String           @unique
+  total_jasa        Decimal          @default(0)
+  total_part        Decimal          @default(0)
+  grand_total       Decimal          @default(0)
+  status_pembayaran StatusPembayaran @default(BELUM_BAYAR)
+  createdAt         DateTime         @default(now())
+
+  spk               SPK              @relation(fields: [no_spk], references: [no_spk])
+}
