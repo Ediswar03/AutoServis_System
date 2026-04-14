@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 
-// Memanggil controller yang sudah kita buat
 const { tambahPelanggan } = require('../controllers/PelangganController');
+const { completeSpk, getSpkById } = require('../controllers/SpkController');
 
-// Membuat Endpoint API (Method: POST, URL: /api/pelanggan)
 router.post('/pelanggan', tambahPelanggan);
+router.post('/spk/complete', completeSpk);
+router.get('/spk/:id', getSpkById);
 
 module.exports = router;

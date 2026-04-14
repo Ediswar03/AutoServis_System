@@ -17,13 +17,46 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (data.status) {
+        // Store token in cookie
+        document.cookie = `auth-token=${data.data.token}; path=/; max-age=28800` // 8 hours
+
+        // Redirect based on role
+        const role = data.data.user.role.toLowerCase()
+        switch (role) {
+          case 'admin':
+            router.push('/admin')
+            break
+          case 'mekanik':
+            router.push('/mechanic')
+            break
+          case 'gudang':
+            router.push('/gudang')
+            break
+          case 'pimpinan':
+            router.push('/pimpinan')
+            break
+          default:
+            router.push('/dashboard')
+        }
+      } else {
+        alert(data.message)
+      }
+    } catch (error) {
+      alert('Terjadi kesalahan saat login.')
+    } finally {
       setLoading(false)
-      // For now, redirect to dashboard
-      router.push("/")
-    }, 1500)
+    }
   }
 
   return (
@@ -57,7 +90,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@autocare.com"
+                    placeholder="admin@autoservis.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
